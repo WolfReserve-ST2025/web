@@ -2,7 +2,6 @@ import axios from '../../api/axios';
 
 export const login = (data: { email: string; password: string }) => {
   return axios.post('/auth/login', data).then((response) => {
-    console.log('Login API response:', response.data);
 
     // Store both accessToken and refreshToken in localStorage
     localStorage.setItem('accessToken', response.data.accessToken);
@@ -12,7 +11,7 @@ export const login = (data: { email: string; password: string }) => {
   });
 };
 
-export const register = (data: { email: string; password: string; role: string }) =>
+export const register = (data: { name: string; surname: string; email: string; password: string; role: string }) =>
   axios.post('/auth/register', data);
 
 export const getRefreshToken = () => localStorage.getItem('refreshToken');

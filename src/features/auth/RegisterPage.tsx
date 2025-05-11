@@ -7,10 +7,12 @@ import ErrorMessage from '../../components/Messages/ErrorMessage';
 import SuccessMessage from '../../components/Messages/SuccessMessage';
 
 const RegisterPage = () => {
+  const [name, setName] = useState('');
+  const [surname, setSurname] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState('Uporabnik');
+  const [role, setRole] = useState('User');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -23,8 +25,8 @@ const RegisterPage = () => {
     }
 
     try {
-      const res = await register({ email, password, role });
-      localStorage.setItem('token', res.data.token);
+      const res = await register({ name, surname, email, password, role });
+      localStorage.setItem('accessToken', res.data.token);
       setSuccess('Registration successful!');
       setTimeout(() => navigate('/dashboard'), 2000);
     } catch (err: any) {
@@ -38,6 +40,20 @@ const RegisterPage = () => {
       {success && <SuccessMessage message={success} onClose={() => setSuccess(null)} />}
       <form onSubmit={handleSubmit} className="space-y-4 w-80">
         <h2 className="text-2xl font-bold">Register</h2>
+        <InputField
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Name"
+          required
+        />
+        <InputField
+          type="text"
+          value={surname}
+          onChange={(e) => setSurname(e.target.value)}
+          placeholder="Surname"
+          required
+        />
         <InputField
           type="email"
           value={email}
@@ -65,9 +81,9 @@ const RegisterPage = () => {
           onChange={(e) => setRole(e.target.value)}
           required
         >
-          <option value="Uporabnik">User</option>
+          <option value="User">User</option>
           <option value="Hotel">Hotel</option>
-          <option value="Kuhar">Chef</option>
+          <option value="Chef">Chef</option>
         </select>
         <PrimaryButton type="submit" color="green" width="full">
           Register
