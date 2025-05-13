@@ -1,5 +1,5 @@
 export class Room {
-    id: string;
+    _id: string;
     name: string;
     type: string;
     description: string;
@@ -10,7 +10,7 @@ export class Room {
 
     constructor({ _id, name, type, description, pricePerNight, maxPersonCount, imgUrl, userId }: 
         { _id: string; name: string; type: string; description: string; pricePerNight: number; maxPersonCount: number; imgUrl: string; userId: string; }) {
-        this.id = _id;
+        this._id = _id;
         this.name = name;
         this.type = type;
         this.description = description;

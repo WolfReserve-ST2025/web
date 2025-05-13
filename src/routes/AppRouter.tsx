@@ -4,7 +4,7 @@ import RegisterPage from '../features/auth/RegisterPage';
 import PrivateRoute from '../components/PrivateRoute/PrivateRoute';
 import WelcomePage from '../pages/WelcomePage';
 import DashboardLayout from '../pages/DashboardPage';
-import Rooms from '../features/rooms/RoomsList';
+import Rooms from '../features/rooms/Rooms';
 import Orders from '../features/orders/Orders';
 import Foods from '../features/food/Foods';
 

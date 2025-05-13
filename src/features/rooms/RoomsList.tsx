@@ -1,31 +1,16 @@
-import { useEffect, useState } from 'react';
-import { getRooms} from './Rooms';
-import { Room } from './models/roomModel'; // Correcting the type name to 'RoomResponse'
+import { Room } from './models/roomModel';
 
-const Rooms = () => {
-
-    const [rooms, setRooms] = useState<Room[]>([]);
-
-    useEffect(() => {
-        const fetchRooms = async () => {
-            try {
-                const roomsData: Room[] = await getRooms();
-                setRooms(roomsData);
-            } catch (error) {
-                console.error('Error fetching rooms:', error);
-            }
-        };
-
-        fetchRooms();
-    }, []);
-    
+const RoomsList: React.FC<{ rooms: Room[] }> = ({ rooms }) => {
     return (
         <div>
-            {rooms.map((room, index) => (
-                <div key={index}>{room.name}</div> // Assuming room has a 'name' property
+            {rooms.map((room: Room) => (
+                <div key={room._id} className="room-card">
+                    <h2 className="room-name">{room.name}</h2>
+                    <p className="room-detail"><strong>Type:</strong> {room.type}</p>
+                </div>
             ))}
         </div>
     );
 }
 
-export default Rooms;
+export default RoomsList;
