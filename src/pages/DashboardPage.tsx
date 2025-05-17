@@ -2,18 +2,34 @@ import { Outlet } from 'react-router-dom';
 import Header from '../components/Header/Header';
 import SideMenu from '../components/SideMenu/SideMenu';
 
-const DashboardLayout = () => {
+const SIDEBAR_WIDTH = '16rem';
+const HEADER_HEIGHT = '4rem';
+
+const DashboardPage = () => {
   return (
-    <div className="flex flex-col min-h-screen">
+    <div>
       <Header />
-      <div className="flex flex-1">
+      <aside
+        className="fixed left-0 bg-gray-800 text-white w-64 flex flex-col justify-between z-10"
+        style={{ top: HEADER_HEIGHT, height: `calc(100vh - ${HEADER_HEIGHT})` }}
+      >
         <SideMenu />
-        <main className="flex-1 p-8">
+      </aside>
+      <div
+        className="bg-gray-50"
+        style={{
+          marginLeft: SIDEBAR_WIDTH,
+          marginTop: HEADER_HEIGHT,
+          height: `calc(100vh - ${HEADER_HEIGHT})`,
+          overflowY: 'auto',
+        }}
+      >
+        <div className="p-8">
           <Outlet />
-        </main>
+        </div>
       </div>
     </div>
   );
 };
 
-export default DashboardLayout;
+export default DashboardPage;
