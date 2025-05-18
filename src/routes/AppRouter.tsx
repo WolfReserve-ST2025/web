@@ -1,12 +1,13 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import LoginPage from '../features/auth/LoginPage';
 import RegisterPage from '../features/auth/RegisterPage';
 import PrivateRoute from '../components/PrivateRoute/PrivateRoute';
 import WelcomePage from '../pages/WelcomePage';
-import DashboardLayout from '../pages/DashboardPage';
+import DashboardPage from '../pages/DashboardPage';
 import Rooms from '../features/rooms/Rooms';
 import Orders from '../features/orders/Orders';
 import Foods from '../features/food/Foods';
+import Profile from '../features/profile/Profile';
 import Reservations from '../features/reservations/Rerservations';
 
 const AppRouter = () => (
@@ -18,14 +19,16 @@ const AppRouter = () => (
       path="/dashboard"
       element={
         <PrivateRoute>
-          <DashboardLayout />
+          <DashboardPage />
         </PrivateRoute>
       }
     >
+      <Route index element={<Navigate to="rooms" />} />
       <Route path="rooms" element={<Rooms />} />
       <Route path="reservations" element={<Reservations />} />
       <Route path="orders" element={<Orders />} />
       <Route path="food" element={<Foods />} />
+      <Route path="profile" element={<Profile />} />
     </Route>
   </Routes>
 );

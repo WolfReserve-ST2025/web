@@ -1,29 +1,31 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import axios from '../../api/axios';
+import { useCurrentUser } from '../../features/auth/useCurrentUser';
 
 const Header = () => {
-  const [user, setUser] = useState<{ name: string } | null>(null);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await axios.get('/users/me');
-        setUser(response.data);
-      } catch (error) {
-        console.error('Failed to fetch user:', error);
-      }
-    };
-    fetchUser();
-  }, []);
+  const { user, loading } = useCurrentUser();
 
   return (
-    <header className="bg-gray-900 text-white p-4 flex items-center justify-between">
+    <header className="fixed top-0 left-0 right-0 z-20 bg-gray-900 text-white p-4 flex items-center justify-between h-16">
       <Link to="/dashboard" className="text-2xl font-bold">
         WolfReserve
       </Link>
       <div>
-        {user ? <span>Welcome, {user.name}</span> : <span>Loading...</span>}
+        {loading ? (
+          <span>Loading...</span>
+        ) : user ? (
+          <>
+            Welcome,{' '}
+            <Link
+              to="/dashboard/profile"
+              className="hover:underline cursor-pointer"
+              title="View profile"
+            >
+              {user.name}
+            </Link>
+          </>
+        ) : (
+          <span>Not logged in</span>
+        )}
       </div>
     </header>
   );
