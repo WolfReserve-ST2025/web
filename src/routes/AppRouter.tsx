@@ -7,6 +7,7 @@ import DashboardLayout from '../pages/DashboardPage';
 import Rooms from '../features/rooms/Rooms';
 import Orders from '../features/orders/Orders';
 import Foods from '../features/food/Foods';
+import Reservations from '../features/reservations/Rerservations';
 
 const AppRouter = () => (
   <Routes>
@@ -22,6 +23,7 @@ const AppRouter = () => (
       }
     >
       <Route path="rooms" element={<Rooms />} />
+      <Route path="reservations" element={<Reservations />} />
       <Route path="orders" element={<Orders />} />
       <Route path="food" element={<Foods />} />
     </Route>

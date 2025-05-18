@@ -30,6 +30,15 @@ const SideMenu = () => {
           </li>
           <li>
             <Link
+              to="reservations"
+              className="flex items-center bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded transition"
+            >
+              <FontAwesomeIcon icon={faClipboardList} className="mr-2" />
+              Reservations
+            </Link>
+          </li>
+          <li>
+            <Link
               to="food"
               className="flex items-center bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded transition"
             >
