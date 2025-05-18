@@ -1,6 +1,11 @@
 import { IReservationModel } from "./Models/IReservationModel";
 
-const ReservationsList: React.FC<{reservations: IReservationModel[], onDelete: (_id: string) => void, onAccept: (_id: string) => void}> = ({reservations, onDelete, onAccept}) => {
+const ReservationsList: React.FC<{
+    reservations: IReservationModel[], 
+    onDelete: (_id: string) => void, 
+    onAccept: (_id: string) => void,
+    canAccept: boolean,
+    canDelete: boolean}> = ({reservations, onDelete, onAccept, canAccept, canDelete}) => {
     return(
         <div>
             {reservations.map((reservation: IReservationModel) => (
@@ -15,13 +20,15 @@ const ReservationsList: React.FC<{reservations: IReservationModel[], onDelete: (
                     <p>Potrjena: {reservation.isAccepted ? 'Da' : 'Ne'}</p>
                     <p>Rezervirana: {reservation.isReserved ? 'Da' : 'Ne'}</p>
                     <div className="mt-4">
-                        <button
+                        {canDelete && (
+                            <button
                             onClick={() => onDelete(reservation.id)}
                             className="px-3 py-1 rounded bg-red-500 text-white hover:bg-red-700 mr-2"
                         >
                             Izbriši
                         </button>
-                        {!reservation.isAccepted && (
+                        )}
+                        {!reservation.isAccepted && canAccept && (
                             <button
                                 onClick={() => onAccept(reservation.id)}
                                 className="px-3 py-1 rounded bg-green-500 text-white hover:bg-blue-700 ml-2"

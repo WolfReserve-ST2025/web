@@ -2,6 +2,7 @@ import axios from '../../api/axios';
 import React, { useEffect, useState, useContext } from 'react';
 import { IReservationModel } from './Models/IReservationModel';
 import ReservationsList from './ReservationsList';
+import {getUserFromToken} from '../auth/useCurrentUser';
 
 const Reservations = () => {
     const [reservations, setReservations] = useState([]);
@@ -10,7 +11,9 @@ const Reservations = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const canAccept = true;
+    const user = getUserFromToken();
+    const canAccept = user?.role === 'Hotel';
+    const canDelte = user?.role === 'User';
 
     const getReservations = async () => {
         setLoading(true);
@@ -87,6 +90,8 @@ const Reservations = () => {
                     reservations={reservations}
                     onDelete={handleDelete}
                     onAccept={handleAccept}
+                    canAccept={canAccept}
+                    canDelete={canDelte}
                 />
             </div>
         );

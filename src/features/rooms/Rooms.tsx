@@ -6,6 +6,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { AuthContext } from '../auth/AuthProvider';
 import RoomsFormProps from './roomsForm';
 import { AddReservationModel } from './models/addReservationModel';
+import {getUserFromToken} from '../auth/useCurrentUser';
 
 
 const Rooms = () => {
@@ -17,11 +18,11 @@ const Rooms = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // const canEdit = auth?.accessToken === 1;
-  // const canAdd = auth.token.role === 1;
-  const canAdd = true;
-  const canEdit = true;
-  const canAddReservation = true;
+  const user = getUserFromToken();
+
+  const canAdd = user?.role === 'Hotel';
+  const canEdit = user?.role === 'Hotel';
+  const canAddReservation = user?.role === 'User';
 
   const getRooms = async () => {
     setLoading(true);
