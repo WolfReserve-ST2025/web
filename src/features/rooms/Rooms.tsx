@@ -26,7 +26,7 @@ const Rooms = () => {
 
   const getRooms = async () => {
     setLoading(true);
-
+    debugger;
     const accessToken = localStorage.getItem('accessToken');
     if (!accessToken) {
       throw new Error('No access token found in localStorage');
@@ -36,7 +36,17 @@ const Rooms = () => {
      try{
         const response = await axios.get('/rooms');
 
-        const roomsResponse = response.data.map((room: any) => Room.fromApi(room));
+        const roomsResponse = response.data.map((room: any) => ({
+          _id: room._id,
+          name: room.name,
+          type: room.type,
+          description: room.description,
+          pricePerNight: room.pricePerNight,
+          maxPersonCount: room.maxPersonCount,
+          imgUrl: room.imgUrl,
+          userId: room.userId?._id,
+          hotelName: room.userId?.name,
+        }));
 
         setRooms(roomsResponse);
         setError('');
@@ -99,17 +109,24 @@ const Rooms = () => {
   return(
     <div>
       {canAdd && (
-                <button
-                    onClick={() => {
-                        setSelectedRoom(null);
-                        setIsFormOpen(true);
-                    }}
-                    className="mb-4 px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-700"
-                >
-                    Dodaj novo sobo
-                </button>
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <button
+                  onClick={() => {
+                      setSelectedRoom(null);
+                      setIsFormOpen(true);
+                  }}
+                  className="mb-4 px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-700"
+                    >
+                  Dodaj novo sobo
+                    </button>
+                </div>
             )}
-    <RoomsList rooms={rooms} onEdit={handleEdit} onDelete={handleDelete} canEdit={canEdit} canAddReservation={canAddReservation} ></RoomsList>
+    <RoomsList 
+      rooms={rooms} 
+      onEdit={handleEdit} 
+      onDelete={handleDelete} 
+      canEdit={canEdit} 
+      canAddReservation={canAddReservation}/>
     {isFormOpen && (
                 <RoomsForm
                     room={selectedRoom || undefined}

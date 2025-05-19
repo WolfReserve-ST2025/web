@@ -18,6 +18,7 @@ const RoomsForm: React.FC<RoomsFormProps> = ({ room, onClose, onSubmit }) => {
         maxPersonCount: 0,
         imgUrl: "",
         userId: "",
+        hotelName: "",
     });
 
     const handleChange = (
@@ -46,6 +47,7 @@ const RoomsForm: React.FC<RoomsFormProps> = ({ room, onClose, onSubmit }) => {
                 maxPersonCount: room.maxPersonCount,
                 imgUrl: room.imgUrl,
                 userId: room.userId,
+                hotelName: room.hotelName,
             });
         }
     }, [room]);
@@ -123,17 +125,35 @@ const RoomsForm: React.FC<RoomsFormProps> = ({ room, onClose, onSubmit }) => {
             />
              </label>
             
-             <label className="block mb-2">
-                Slika: 
+            <label className="block mb-2">
+                Slika:
                 <input
-                    type="text"
+                    type="file"
+                    accept="image/*"
                     name="imgUrl"
-                    value={formData.imgUrl}
-                    onChange={handleChange}
-                    placeholder="Image URL"
+                    onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => {
+                                setFormData((prev) => ({
+                                    ...prev,
+                                    imgUrl: reader.result as string,
+                                }));
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    }}
                     className="border rounded w-full py-2 px-3 mt-1"
                 />
-             </label>
+                {formData.imgUrl && (
+                    <img
+                        src={formData.imgUrl}
+                        alt="Predogled slike"
+                        className="mt-2 max-h-32 object-contain"
+                    />
+                )}
+            </label>
             <div className="mt-4 flex justify-between">
                         <button type="button" onClick={onClose} className="bg-gray-500 text-white px-4 py-2 rounded">
                             Prekliči
