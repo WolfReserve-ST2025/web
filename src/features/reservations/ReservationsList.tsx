@@ -18,7 +18,6 @@ const ReservationsList: React.FC<{
                     <p>Datum od: {reservation.reservedDateFrom ? new Date(reservation.reservedDateFrom).toLocaleDateString('sl-SI', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''}</p>
                     <p>Datum do: {reservation.reservedDateTo ? new Date(reservation.reservedDateTo).toLocaleDateString('sl-SI', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''}</p>
                     <p>Potrjena: {reservation.isAccepted ? 'Da' : 'Ne'}</p>
-                    <p>Rezervirana: {reservation.isReserved ? 'Da' : 'Ne'}</p>
                     <div className="mt-4">
                         {canDelete && (
                             <button

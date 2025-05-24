@@ -4,6 +4,8 @@ import AddReservationForm from './addReservationForm';
 import { useState } from 'react';
 import axios from '../../api/axios';
 import {getUserFromToken} from '../auth/useCurrentUser';
+import ErrorMessage from '../../components/Messages/ErrorMessage';
+import SuccessMessage from '../../components/Messages/SuccessMessage';
 
 const RoomsList: React.FC<{ 
     rooms: Room[], 
@@ -14,6 +16,8 @@ const RoomsList: React.FC<{
 = ({ rooms, onEdit, onDelete, canEdit, canAddReservation }) => {
 
     const [isFormOpen, setIsFormOpen] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
 
     var user = getUserFromToken();
     const isHotel = user?.role === 'Hotel';
@@ -25,13 +29,15 @@ const RoomsList: React.FC<{
           });
           setIsFormOpen(false);
           
-          alert('Uspešno dodana rezervacija.');
+          setSuccess('Uspešno dodana rezervacija.');
           } catch (err) {
-              alert('Napaka pri dodajanju rezervacije.');
+              setError('Napaka pri dodajanju rezervacije.');
           }
       };
     return (
         <div className="rooms-list" style={{ display: 'flex', flexWrap: 'wrap', gap: '24px', justifyContent: 'center' }}>
+            {error && <ErrorMessage message={error} onClose={() => setError(null)} />}
+      {success && <SuccessMessage message={success} onClose={() => setSuccess(null)} />}
             {rooms.map((room: Room) => (
                 <div
                     key={room._id}

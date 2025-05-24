@@ -7,6 +7,8 @@ import { AuthContext } from '../auth/AuthProvider';
 import RoomsFormProps from './roomsForm';
 import { AddReservationModel } from './models/addReservationModel';
 import {getUserFromToken} from '../auth/useCurrentUser';
+import ErrorMessage from '../../components/Messages/ErrorMessage';
+import SuccessMessage from '../../components/Messages/SuccessMessage';
 
 
 const Rooms = () => {
@@ -16,7 +18,8 @@ const Rooms = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isFormOpenReservation, setIsFormOpenReservation] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] =useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const user = getUserFromToken();
 
@@ -26,7 +29,6 @@ const Rooms = () => {
 
   const getRooms = async () => {
     setLoading(true);
-    debugger;
     const accessToken = localStorage.getItem('accessToken');
     if (!accessToken) {
       throw new Error('No access token found in localStorage');
@@ -49,7 +51,6 @@ const Rooms = () => {
         }));
 
         setRooms(roomsResponse);
-        setError('');
      }
      catch (error) {
       setError('Napaka pri pridobivanju sob.');
@@ -67,17 +68,17 @@ const Rooms = () => {
             debugger;
             if (room._id ) {
                 await axios.put(`/rooms/${room._id}`, room, requestHeaders);
-                alert('Soba uspešno posodobljena.');
+                setSuccess('Soba uspešno posodobljena.');
             } else {
                 await axios.post(`/rooms`, room, requestHeaders);
-                alert('Soba uspešno dodana.');
+                setSuccess('Soba uspešno dodana.');
             }
 
             getRooms();
             setIsFormOpen(false);
         } catch (err) {
             console.error('Napaka pri dodajanju/urejanju sobe:', err);
-            alert('Napaka pri dodajanju/urejanju sobe.');
+            setError('Napaka pri dodajanju/urejanju sobe.');
         }
     };
 
@@ -86,10 +87,10 @@ const Rooms = () => {
             await axios.delete(`/rooms/${_id}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` },
             });
-            alert('Soba uspešno izbrisana.');
+            setSuccess('Soba uspešno izbrisana.');
             getRooms();
         } catch (err) {
-            alert('Napaka pri brisanju sobe.');
+            setError('Napaka pri brisanju sobe.');
         }
     };
 
@@ -108,6 +109,8 @@ const Rooms = () => {
     
   return(
     <div>
+      {error && <ErrorMessage message={error} onClose={() => setError(null)} />}
+      {success && <SuccessMessage message={success} onClose={() => setSuccess(null)} />}
       {canAdd && (
                 <div style={{ display: 'flex', justifyContent: 'center' }}>
                     <button

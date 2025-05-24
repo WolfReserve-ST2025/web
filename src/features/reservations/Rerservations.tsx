@@ -3,13 +3,16 @@ import React, { useEffect, useState, useContext } from 'react';
 import { IReservationModel } from './Models/IReservationModel';
 import ReservationsList from './ReservationsList';
 import {getUserFromToken} from '../auth/useCurrentUser';
+import ErrorMessage from '../../components/Messages/ErrorMessage';
+import SuccessMessage from '../../components/Messages/SuccessMessage';
 
 const Reservations = () => {
     const [reservations, setReservations] = useState([]);
     const [selectedReservations, setSelectedReservation] = useState<IReservationModel | null>(null);
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
 
     const user = getUserFromToken();
     const canAccept = user?.role === 'Hotel';
@@ -44,7 +47,6 @@ const Reservations = () => {
             );
 
             setReservations(reservationsResponse);
-            setError('');
         } catch (error) {
             setError('Napaka pri pridobivanju rezervacij.');
         } finally {
@@ -57,10 +59,10 @@ const Reservations = () => {
             await axios.delete(`/reservations/${_id}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` },
             });
-            alert('Rezervacija uspešno izbrisana.');
+            setSuccess('Rezervacija uspešno izbrisana.');
             getReservations();
         } catch (err) {
-            alert('Napaka pri brisanju rezervacije.');
+            setError('Napaka pri brisanju rezervacije.');
         }
     };
 
@@ -69,10 +71,10 @@ const Reservations = () => {
             await axios.put(`/reservations/reserveRoom/${_id}`, { isAccepted: true }, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` },
             });
-            alert('Rezervacija uspešno sprejeta.');
+            setSuccess('Rezervacija uspešno sprejeta.');
             getReservations();
         } catch (err) {
-            alert('Napaka pri sprejemanju rezervacije.');
+            setError('Napaka pri sprejemanju rezervacije.');
         }
     };
 
@@ -85,6 +87,8 @@ const Reservations = () => {
 
         return(
             <div>
+                {error && <ErrorMessage message={error} onClose={() => setError(null)} />}
+                {success && <SuccessMessage message={success} onClose={() => setSuccess(null)} />}
                 <h1 className="text-2xl font-bold mb-4">Seznam rezervacij</h1>
                 <ReservationsList
                     reservations={reservations}
