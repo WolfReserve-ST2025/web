@@ -78,6 +78,18 @@ const Reservations = () => {
         }
     };
 
+    const handleReject = async (_id: string) => {
+        try {
+            await axios.put(`/reservations/cancelReservation/${_id}`, {
+                headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` },
+            });
+            setSuccess('Rezervacija uspešno zavrnjena.');
+            getReservations();
+        } catch (err) {
+            setError('Napaka pri zavrnitvi rezervacije.');
+        }
+    };
+
      useEffect(() => {
           getReservations();
         }, []);
@@ -89,11 +101,12 @@ const Reservations = () => {
             <div>
                 {error && <ErrorMessage message={error} onClose={() => setError(null)} />}
                 {success && <SuccessMessage message={success} onClose={() => setSuccess(null)} />}
-                <h1 className="text-2xl font-bold mb-4">Seznam rezervacij</h1>
+                <h1 className="text-2xl font-bold mb-4" style={{ display: 'flex', justifyContent: 'center' }}>Seznam rezervacij</h1>
                 <ReservationsList
                     reservations={reservations}
                     onDelete={handleDelete}
                     onAccept={handleAccept}
+                    onCancel={handleReject}
                     canAccept={canAccept}
                     canDelete={canDelte}
                 />
