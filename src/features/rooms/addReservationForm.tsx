@@ -47,11 +47,11 @@ const AddReservationForm: React.FC<{
         <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex justify-center items-center">
             <div className="bg-white p-6 rounded shadow-md w-96">
                 <h3 className="text-lg font-bold mb-4">
-                    Dodaj rezervacijo
+                    Add reservation
                 </h3>
                 <form onSubmit={handleSubmit}>
                     <label className="block mb-2">
-                        Število oseb:
+                        Number of persons:
                         <input
                             type="number"
                             name="personCount"
@@ -61,7 +61,7 @@ const AddReservationForm: React.FC<{
                         />
                     </label>
                     <label className="block mb-2">
-                        Datum od:
+                        Date from:
                         <input
                             type="date"
                             name="reservedDateFrom"
@@ -71,7 +71,7 @@ const AddReservationForm: React.FC<{
                         />
                     </label>
                     <label className="block mb-2">
-                        Datum do:
+                        Date to:
                         <input
                             type="date"
                             name="reservedDateTo"
@@ -81,9 +81,9 @@ const AddReservationForm: React.FC<{
                         />
                     </label>
                     <button type="button" onClick={onClose} className="bg-gray-500 text-white px-4 py-2 rounded">
-                            Prekliči
+                            Cancel
                         </button>
-                    <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">Dodaj</button>
+                    <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">Add</button>
                 </form>
             </div>
         </div>

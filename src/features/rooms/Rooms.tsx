@@ -53,7 +53,7 @@ const Rooms = () => {
         setRooms(roomsResponse);
      }
      catch (error) {
-      setError('Napaka pri pridobivanju sob.');
+      setError('Error getting rooms.');
     }
     finally{
       setLoading(false);
@@ -68,17 +68,17 @@ const Rooms = () => {
             debugger;
             if (room._id ) {
                 await axios.put(`/rooms/${room._id}`, room, requestHeaders);
-                setSuccess('Soba uspešno posodobljena.');
+                setSuccess('Room succesfully updated.');
             } else {
                 await axios.post(`/rooms`, room, requestHeaders);
-                setSuccess('Soba uspešno dodana.');
+                setSuccess('Succesfully added room.');
             }
 
             getRooms();
             setIsFormOpen(false);
         } catch (err) {
-            console.error('Napaka pri dodajanju/urejanju sobe:', err);
-            setError('Napaka pri dodajanju/urejanju sobe.');
+            console.error('Error while adding/updating room:', err);
+            setError('Error while adding/updating room');
         }
     };
 
@@ -87,10 +87,10 @@ const Rooms = () => {
             await axios.delete(`/rooms/${_id}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` },
             });
-            setSuccess('Soba uspešno izbrisana.');
+            setSuccess('Succesfully deleted room.');
             getRooms();
         } catch (err) {
-            setError('Napaka pri brisanju sobe.');
+            setError('Error while deleting room.');
         }
     };
 
@@ -104,7 +104,7 @@ const Rooms = () => {
       getRooms();
     }, []);
 
-    if (loading) return <p>Nalaganje...</p>;
+    if (loading) return <p>Loading...</p>;
     if (error) return <p>{error}</p>;
     
   return(

@@ -29,9 +29,9 @@ const RoomsList: React.FC<{
           });
           setIsFormOpen(false);
           
-          setSuccess('Uspešno dodana rezervacija.');
+          setSuccess('Succesfully added reservation.');
           } catch (err) {
-              setError('Napaka pri dodajanju rezervacije.');
+              setError('Error while adding reservation.');
           }
       };
     return (
@@ -72,10 +72,10 @@ const RoomsList: React.FC<{
                         {room.name}
                     </h2>
                     <div style={{ width: '100%', marginBottom: '8px', color: '#6b7280' }}>
-                        <strong>Tip:</strong> {room.type}
+                        <strong>Type:</strong> {room.type}
                     </div>
                     <div style={{ width: '100%', marginBottom: '8px', color: '#6b7280' }}>
-                        <strong>Opis:</strong> {room.description}
+                        <strong>Description:</strong> {room.description}
                     </div>
                     {!isHotel && (
                     <div style={{ width: '100%', marginBottom: '8px', color: '#6b7280' }}>
@@ -83,10 +83,10 @@ const RoomsList: React.FC<{
                     </div>
                     )}
                     <div style={{ width: '100%', marginBottom: '8px', color: '#6b7280' }}>
-                        <strong>Cena na noč:</strong> {room.pricePerNight} €
+                        <strong>Price per night:</strong> {room.pricePerNight} €
                     </div>
                     <div style={{ width: '100%', marginBottom: '16px', color: '#6b7280' }}>
-                        <strong>Max oseb:</strong> {room.maxPersonCount}
+                        <strong>Max person:</strong> {room.maxPersonCount}
                     </div>
                     <div style={{ display: 'flex', gap: '8px', width: '100%', justifyContent: 'center', marginTop: '8px' }}>
                         {canEdit && (
@@ -95,13 +95,13 @@ const RoomsList: React.FC<{
                                     onClick={() => onEdit(room)}
                                     className="px-3 py-1 rounded bg-yellow-500 text-white hover:bg-yellow-700"
                                 >
-                                    Uredi
+                                    Edit
                                 </button>
                                 <button
                                     onClick={() => onDelete(room._id)}
                                     className="px-3 py-1 rounded bg-red-500 text-white hover:bg-red-700"
                                 >
-                                    Izbriši
+                                    Delete
                                 </button>
                             </>
                         )}
@@ -110,7 +110,7 @@ const RoomsList: React.FC<{
                                 onClick={() => setIsFormOpen(true)}
                                 className="px-3 py-1 rounded bg-green-500 text-white hover:bg-blue-700"
                             >
-                                Rezerviraj
+                                Reserve
                             </button>
                         )}
                     </div>
