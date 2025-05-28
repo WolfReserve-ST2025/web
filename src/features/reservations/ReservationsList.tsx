@@ -15,7 +15,6 @@ const ReservationsList: React.FC<{
                         <div className="flex-1">
                             <h2 className="text-xl font-semibold mb-2">Reservation #{reservation.id}</h2>
                             <div className="text-gray-600 mb-1">Room: <span className="font-medium">{reservation.roomName}</span></div>
-                            <div className="text-gray-600 mb-1">Hotel: <span className="font-medium">{reservation.hotelName}</span></div>
                             <div className="text-gray-600 mb-1">Person count: <span className="font-medium">{reservation.personCount}</span></div>
                             <div className="text-gray-600 mb-1">Total price: <span className="font-medium">{reservation.totalPrice} €</span></div>
                             <div className="text-gray-600 mb-1">Date from: <span className="font-medium">{reservation.reservedDateFrom ? new Date(reservation.reservedDateFrom).toLocaleDateString('sl-SI', { day: '2-digit', month: '2-digit', year: 'numeric' }) : ''}</span></div>
