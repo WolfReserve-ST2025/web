@@ -6,6 +6,7 @@ import CartModal from './CartModal/CartModal';
 import { Order } from '../orders/Orders';
 import FoodModal from './FoodModal/FoodModal';
 import { serialize } from 'v8';
+import { showNotification } from '../../utils/notifications';
 
 export interface Food {
   _id?: string;
@@ -133,6 +134,10 @@ const Foods = () => {
       if (typeToSubmit && !foodTypes.includes(typeToSubmit)) {
         setFoodTypes([...foodTypes, typeToSubmit]);
       }
+
+      // OS notifiaciton za dodajanje hrane
+      showNotification(`${activeFood.name} added to foods!`)
+
       setActiveFood({ name: '', price: 0, description: '', type: '', imageUrl: '' });
       setImageFile(null);
       setModalOpen(false)
@@ -176,6 +181,10 @@ const Foods = () => {
       if (typeToSubmit && !foodTypes.includes(typeToSubmit)) {
         setFoodTypes([...foodTypes, typeToSubmit]);
       }
+      
+      // OS notifiaciton za dodajanje hrane
+      showNotification(`${activeFood.name} edited successfully!`)
+
       setModalOpen(false)
       setActiveFood({ name: '', price: 0, description: '', type: '', imageUrl: '' });
       setImageFile(null);
@@ -207,6 +216,10 @@ const Foods = () => {
     try {
       await axios.delete(`/foods/${food_id}`);
       setFoods(foods.filter((f) => f._id !== food_id));
+      
+      // OS notifiaciton za brisanje hrane
+      showNotification(`Food deleted successfully!`)
+
     } catch (err) {
       setError('Failed to delete food.');
     }
@@ -226,6 +239,10 @@ const Foods = () => {
     try {
       alert('Oddano naročilo!');
       await axios.post(`/orders`);
+      
+      // OS notifiaciton za oddajo naročila hrane
+      showNotification(`Order submitted successfully!`)
+
       setDraftOrder(null)
       setCartOpen(false);
     } catch (err) {
