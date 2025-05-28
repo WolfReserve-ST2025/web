@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Food } from "../food/Foods";
 import axios from '../../api/axios';
 import { useCurrentUser, User } from "../auth/useCurrentUser";
+import { showNotification } from "../../utils/notifications";
 
 export type OrderStatus = 'draft' | 'pending' | 'confirmed' | 'rejected';
 
@@ -70,6 +71,9 @@ const Orders = () => {
     const response = await axios.put(`/orders/${order_id}`, { status: 'confirmed' });
     setOrders(orders.map((o) => o._id === order_id ? response.data.order : o))
 
+    // OS notifiaciton za potrditev naročila hrane
+    showNotification(`Order #${order_id} confirmed!`);
+    
     fetchOrders();
 
   };
@@ -77,6 +81,10 @@ const Orders = () => {
   const handleReject = async (order_id: string) => {
     const response = await axios.put(`/orders/${order_id}`, { status: 'rejected' });
     setOrders(orders.map((o) => o._id === order_id ? response.data.order : o))
+
+    // OS notifiaciton za zavrnitev naročila hrane
+    showNotification(`Order #${order_id} rejected!`);
+
     fetchOrders();
 
   };

@@ -5,6 +5,7 @@ import ReservationsList from './ReservationsList';
 import {getUserFromToken} from '../auth/useCurrentUser';
 import ErrorMessage from '../../components/Messages/ErrorMessage';
 import SuccessMessage from '../../components/Messages/SuccessMessage';
+import { showNotification } from '../../utils/notifications';
 
 const Reservations = () => {
     const [reservations, setReservations] = useState([]);
@@ -40,7 +41,6 @@ const Reservations = () => {
                     roomId: reservation.roomId._id,
                     roomName: reservation.roomId.name,
                     userId: reservation.userId._id,
-                    hotelName: reservation.userId.name,
                     isAccepted: reservation.isAccepted,
                     isReserved: reservation.isReserved
                 })
@@ -60,6 +60,10 @@ const Reservations = () => {
                 headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` },
             });
             setSuccess('reservation successfully deleted.');
+
+            // OS notifiaciton za brisanje rezervacije
+            showNotification(`Reservation successfully deleted!`);
+
             getReservations();
         } catch (err) {
             setError('Error while deleting reservation.');
@@ -72,6 +76,10 @@ const Reservations = () => {
                 headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` },
             });
             setSuccess('Reservation succesfully accepted');
+            
+            // OS notifiaciton za potrditev rezervacije
+            showNotification(`Reservation accepted!`);
+
             getReservations();
         } catch (err) {
             setError('Error while accepting reservation.');
@@ -80,10 +88,14 @@ const Reservations = () => {
 
     const handleReject = async (_id: string) => {
         try {
-            await axios.put(`/reservations/cancelReservation/${_id}`, {
+            await axios.put(`/reservations/reject/${_id}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` },
             });
             setSuccess('Reservation succesfully rejected.');
+
+            // OS notifiaciton za zavrnitev rezervacije
+            showNotification(`Reservation rejected!`);
+
             getReservations();
         } catch (err) {
             setError('Error while rejecting reservation.');

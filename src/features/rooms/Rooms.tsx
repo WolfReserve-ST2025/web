@@ -9,6 +9,7 @@ import { AddReservationModel } from './models/addReservationModel';
 import {getUserFromToken} from '../auth/useCurrentUser';
 import ErrorMessage from '../../components/Messages/ErrorMessage';
 import SuccessMessage from '../../components/Messages/SuccessMessage';
+import { showNotification } from '../../utils/notifications';
 
 
 const Rooms = () => {
@@ -69,9 +70,15 @@ const Rooms = () => {
             if (room._id ) {
                 await axios.put(`/rooms/${room._id}`, room, requestHeaders);
                 setSuccess('Room succesfully updated.');
+            
+                // OS notifiaciton za posodobitev sobe
+                showNotification(`Room edited successfully!`,{body: `Room ${room.name} has been edited.`});
             } else {
                 await axios.post(`/rooms`, room, requestHeaders);
                 setSuccess('Succesfully added room.');
+                            
+                // OS notifiaciton za dodajanje sobe
+                showNotification(`New room added successfully!`,{body: `Room ${room.name} has been added.`});
             }
 
             getRooms();
@@ -88,6 +95,10 @@ const Rooms = () => {
                 headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` },
             });
             setSuccess('Succesfully deleted room.');
+                            
+            // OS notifiaciton za brisanje sobe
+            showNotification(`Room deleted successfully!`);
+            
             getRooms();
         } catch (err) {
             setError('Error while deleting room.');
