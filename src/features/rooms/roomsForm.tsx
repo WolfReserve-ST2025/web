@@ -60,7 +60,7 @@ const RoomsForm: React.FC<RoomsFormProps> = ({ room, onClose, onSubmit }) => {
                 </h3>
         <form onSubmit={handleSubmit}>
               <label className="block mb-2">
-                Ime sobe:
+                Room name:
                 <input
                     type="text"
                     name="name"
@@ -72,7 +72,7 @@ const RoomsForm: React.FC<RoomsFormProps> = ({ room, onClose, onSubmit }) => {
               </label>
             
             <label className="block mb-2">
-                Tip sobe:
+                Room type:
 
                 <select
                     name="type"
@@ -80,7 +80,7 @@ const RoomsForm: React.FC<RoomsFormProps> = ({ room, onClose, onSubmit }) => {
                     onChange={handleChange}
                     className="border rounded w-full py-2 px-3 mt-1"
                 >
-                    <option value="">Izberi tip sobe</option>
+                    <option value="">Chose room type</option>
                     <option value="suite">Suite</option>
                     <option value="basic">Basic</option>
                     <option value="deluxe">Deluxe</option>
@@ -92,7 +92,7 @@ const RoomsForm: React.FC<RoomsFormProps> = ({ room, onClose, onSubmit }) => {
             </label>
            
              <label className="block mb-2">
-                Opis: 
+                Description: 
                 <textarea
                 name="description"
                 value={formData.description}
@@ -102,7 +102,7 @@ const RoomsForm: React.FC<RoomsFormProps> = ({ room, onClose, onSubmit }) => {
             />
              </label>
              <label className="block mb-2">
-                Cena na noč:
+                Price per night:
                 <input
                 type="number"
                 name="pricePerNight"
@@ -114,7 +114,7 @@ const RoomsForm: React.FC<RoomsFormProps> = ({ room, onClose, onSubmit }) => {
              </label>
             
              <label className="block mb-2">
-                Maksimalno število oseb:
+                Max person count:
                 <input
                 type="number"
                 name="maxPersonCount"
@@ -126,7 +126,7 @@ const RoomsForm: React.FC<RoomsFormProps> = ({ room, onClose, onSubmit }) => {
              </label>
             
             <label className="block mb-2">
-                Slika:
+                Image:
                 <input
                     type="file"
                     accept="image/*"
@@ -149,17 +149,17 @@ const RoomsForm: React.FC<RoomsFormProps> = ({ room, onClose, onSubmit }) => {
                 {formData.imgUrl && (
                     <img
                         src={formData.imgUrl}
-                        alt="Predogled slike"
+                        alt="Preview"
                         className="mt-2 max-h-32 object-contain"
                     />
                 )}
             </label>
             <div className="mt-4 flex justify-between">
                         <button type="button" onClick={onClose} className="bg-gray-500 text-white px-4 py-2 rounded">
-                            Prekliči
+                            Cancel
                         </button>
                         <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
-                            Shrani
+                            Save
                         </button>
                     </div>
         </form>

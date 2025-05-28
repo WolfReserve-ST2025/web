@@ -20,7 +20,7 @@ const FoodModal = ({ open, onClose, action,handleSubmit, activeFood, foodTypes, 
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-            <div className="bg-white rounded-xl shadow-lg max-w-lg w-full p-6 relative">
+            <div className="bg-white rounded-xl  max-w-lg w-full p-6 relative">
                 <button
                     onClick={onClose}
                     className="absolute top-3 right-3 text-2xl text-gray-400 hover:text-black"
@@ -29,7 +29,7 @@ const FoodModal = ({ open, onClose, action,handleSubmit, activeFood, foodTypes, 
                 </button>
                 <form
                     onSubmit={handleSubmit}
-                    className="bg-white shadow-md rounded-lg p-6 mb-10 space-y-4"
+                    className="bg-white  rounded-lg p-6 mb-10 space-y-4"
                 >
                     <h2 className="text-xl font-semibold mb-2">{action} Food</h2>
                     <div>

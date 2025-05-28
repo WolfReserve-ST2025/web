@@ -48,7 +48,7 @@ const Reservations = () => {
 
             setReservations(reservationsResponse);
         } catch (error) {
-            setError('Napaka pri pridobivanju rezervacij.');
+            setError('Error while getting reservations.');
         } finally {
             setLoading(false);
         };
@@ -59,10 +59,10 @@ const Reservations = () => {
             await axios.delete(`/reservations/${_id}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` },
             });
-            setSuccess('Rezervacija uspešno izbrisana.');
+            setSuccess('reservation successfully deleted.');
             getReservations();
         } catch (err) {
-            setError('Napaka pri brisanju rezervacije.');
+            setError('Error while deleting reservation.');
         }
     };
 
@@ -71,10 +71,10 @@ const Reservations = () => {
             await axios.put(`/reservations/reserveRoom/${_id}`, { isAccepted: true }, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` },
             });
-            setSuccess('Rezervacija uspešno sprejeta.');
+            setSuccess('Reservation succesfully accepted');
             getReservations();
         } catch (err) {
-            setError('Napaka pri sprejemanju rezervacije.');
+            setError('Error while accepting reservation.');
         }
     };
 
@@ -83,10 +83,10 @@ const Reservations = () => {
             await axios.put(`/reservations/cancelReservation/${_id}`, {
                 headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` },
             });
-            setSuccess('Rezervacija uspešno zavrnjena.');
+            setSuccess('Reservation succesfully rejected.');
             getReservations();
         } catch (err) {
-            setError('Napaka pri zavrnitvi rezervacije.');
+            setError('Error while rejecting reservation.');
         }
     };
 
@@ -94,7 +94,7 @@ const Reservations = () => {
           getReservations();
         }, []);
     
-        if (loading) return <p>Nalaganje...</p>;
+        if (loading) return <p>Loading...</p>;
         if (error) return <p>{error}</p>;
 
         return(

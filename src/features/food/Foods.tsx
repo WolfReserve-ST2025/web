@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import axios from '../../api/axios';
+import axios, { BASE_URL } from '../../api/axios';
 import { useCurrentUser } from '../auth/useCurrentUser';
 import FoodNavbar from './FoodNavbar/FoodNavbar';
 import CartModal from './CartModal/CartModal';
 import { Order } from '../orders/Orders';
 import FoodModal from './FoodModal/FoodModal';
 import { serialize } from 'v8';
+import FoodDetailModal from './FoodDetailModal/FoodDetailModal';
 import { showNotification } from '../../utils/notifications';
 
 export interface Food {
@@ -40,7 +41,11 @@ const Foods = () => {
   const [cartOpen, setCartOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false)
   const [action, setAction] = useState<"Add" | "Edit">('Add')
-
+  // detail modal
+  const [quantity, setQuantity] = useState<number>(1)
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [selectedFood, setSelectedFood] = useState<Food | null>(null);
+  const [filteredFoods, setFilteredFoods] = useState<Food[]>([]);
 
   useEffect(() => {
     const fetchFoods = async () => {
@@ -63,7 +68,7 @@ const Foods = () => {
 
     const fetchDraftOrder = async () => {
       try {
-        const response = await axios.get('/orders/user');
+        const response = await axios.get('/orders/draftOrder');
         let order;
         if (Array.isArray(response.data)) {
           if (response.data.length > 0) {
@@ -95,6 +100,14 @@ const Foods = () => {
       setActiveType(foodTypes[0])
     }
   }, [activeType, foodTypes])
+
+  useEffect(() => {
+    let result = foods;
+    if (activeType) {
+      result = foods.filter(food => food.type === activeType);
+    }
+    setFilteredFoods(result);
+  }, [foods, activeType]);
 
   // Dodajanje nove hrane 
   // Ko se obrazec spremeni (tekst)
@@ -225,14 +238,6 @@ const Foods = () => {
     }
   };
 
-  // filtracija 
-  let filteredFoods;
-  if (activeType) {
-    filteredFoods = foods.filter(food => food.type === activeType);
-  } else {
-    filteredFoods = foods;
-  }
-
 
   // oddaj naročilo
   const handleSubmitOrder = async () => {
@@ -256,9 +261,10 @@ const Foods = () => {
     if (!food_id) return;
     if (!window.confirm('Are you sure you want to add this food?')) return;
     try {
-      const response = await axios.post(`/orders/${food_id}`);
+      const response = await axios.post(`/orders/${food_id}`, { quantity });
       setDraftOrder(response.data.order)
-      
+      setDetailModalOpen(false)
+      setQuantity(1)
 
     } catch (err: any) {
       // sporočilo uporabniku
@@ -272,7 +278,9 @@ const Foods = () => {
     if (!food_id) return;
     if (!window.confirm('Are you sure you want to remove this food?')) return;
     try {
+
       const response = await axios.delete(`/orders/${food_id}`);
+      console.log(response.data.order)
       setDraftOrder(response.data.order)
 
     } catch (err) {
@@ -281,21 +289,38 @@ const Foods = () => {
   };
 
 
+  // sortiranje gumb
+
+  const handleFilterChange = (filter: string) => {
+    let result = foods;
+    if (activeType) {
+      result = foods.filter(food => food.type === activeType);
+    }
+    if (filter === "price-asc") {
+      result = [...result].sort((a, b) => a.price - b.price);
+    } else if (filter === "price-desc") {
+      result = [...result].sort((a, b) => b.price - a.price);
+    }
+    setFilteredFoods(result);
+  };
+
+
   if (loading) return <div className="text-center mt-10 text-lg">Loading...</div>;
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-6xl mx-auto p-6">
       {user?.role === 'User' && (
         <div className="flex justify-end mb-6">
 
           <button
             onClick={() => setCartOpen(true)}
-            className="relative bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-2 px-4 rounded-full shadow flex items-center gap-2"
+            className="relative bg-gray-200 hover:bg-gray-400 text-black font-bold py-2 px-4 rounded-full shadow flex items-center gap-2"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-1.35 2.7A1 1 0 007 17h10a1 1 0 00.95-.68L19 13M7 13V6a1 1 0 011-1h5a1 1 0 011 1v7" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4a2 2 0 001-1.73z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.27 6.96L12 12l8.73-5.04" />
             </svg>
-            Košarica
+            View Order
             {draftOrder?.foods && (
               <span className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full text-xs w-5 h-5 flex items-center justify-center">
                 {draftOrder.foods.length}
@@ -313,22 +338,24 @@ const Foods = () => {
       )}
 
 
-      <h1 className="text-3xl font-bold mb-6 text-center">Foods Page</h1>
-      {error && <div className="text-red-500 mb-4 text-center">{error}</div>}
-      <button
-        onClick={openAddModal}
-        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-full shadow transition mb-6"
-      >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-        </svg>
-        Dodaj hrano
-      </button>
 
+      {error && <div className="text-red-500 mb-4 text-center">{error}</div>}
+      {user?.role === 'Chef' && (
+        <button
+          onClick={openAddModal}
+          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-2 rounded-full shadow transition mb-6"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          Add food
+        </button>
+      )}
       <FoodNavbar
         foodTypes={foodTypes}
         activeType={activeType}
         setActiveType={setActiveType}
+        onFilterChange={handleFilterChange}
       />
 
       <FoodModal
@@ -343,39 +370,42 @@ const Foods = () => {
         setCustomType={setCustomType}
         foodTypes={foodTypes}
       />
-
+      <FoodDetailModal
+        open={detailModalOpen}
+        food={selectedFood}
+        onClose={() => setDetailModalOpen(false)}
+        quantity={quantity}
+        setQuantity={setQuantity}
+        onAddToCart={handleAddFood}
+      />
       {filteredFoods.length > 0 ? (
-        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <ul className="grid grid-cols-1 sm:grid-cols-4 gap-6">
           {filteredFoods.map((food, idx) => (
             <li
               key={food._id ? food._id : `food-${idx}`}
-              className="relative bg-white rounded-lg shadow-md p-5 flex flex-col items-center group overflow-hidden"
+              className="relative bg-white rounded-lg shadow-md p-5 flex flex-col items-center group overflow-hidden max-w-xs w-full mx-auto"
             >
-              <h3 className="text-lg font-semibold mb-2">{food.name}</h3>
 
-              <p className="mb-2 text-blue-700 font-bold">Price: ${food.price}</p>
+
+
 
               <div className="relative w-full flex justify-center items-center">
                 {food.imageUrl && (
                   <img
-                    src={`http://localhost:5000${food.imageUrl}`}
+                    src={`${BASE_URL}${food.imageUrl}`}
                     alt={food.name}
-                    width="120"
-                    className="rounded mb-2 border transition duration-300 group-hover:opacity-40"
+                    className="w-48 h-48 cursor-pointer  bject-cover rounded mb-2 transition duration-300 group-hover:scale-110"
+                    onClick={() => {
+                      setSelectedFood(food);
+                      setDetailModalOpen(true);
+                    }}
                   />
                 )}
 
 
               </div>
+              <h3 className="text-lg font-semibold mb-2">{food.name}</h3>
 
-              {user?.role == 'User' && (
-                <button
-                  className="bg-red-600 text-white px-4 py-1 rounded hover:bg-red-700 transition"
-                  onClick={() => handleAddFood(food._id)}
-                >
-                  Add to cart
-                </button>
-              )}
 
               {user?.role === 'Chef' && (
                 <div className="flex gap-2 mt-2">
