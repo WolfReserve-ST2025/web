@@ -38,3 +38,18 @@ self.addEventListener('fetch', event => {
     })
   );
 });
+
+self.addEventListener("push", function (event) {
+    if (event.data) {
+        const data = event.data.json();
+
+        const title = data.title || "Notification";
+        const options = {
+            body: data.body || "",
+            icon: "/logo512.png",
+            badge: "/logo512.png"
+        };
+
+        event.waitUntil(self.registration.showNotification(title, options));
+    }
+});
