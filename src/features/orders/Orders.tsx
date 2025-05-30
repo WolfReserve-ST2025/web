@@ -27,7 +27,7 @@ const Orders = () => {
   const [error, setError] = useState<string | null>(null)
   const { user, loading } = useCurrentUser();
   const [showFilters, setShowFilters] = useState(false)
-  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<string | null>("pending");
   const filters = [
     { label: "pending", value: "pending" },
     { label: "confirmed", value: "confirmed" },
