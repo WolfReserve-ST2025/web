@@ -58,6 +58,7 @@ const RoomsList: React.FC<{
                     <img
                         src={room.imgUrl}
                         alt={room.name}
+                        loading="lazy"
                         className="room-image"
                         style={{
                             width: '280px',

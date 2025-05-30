@@ -43,6 +43,7 @@ const CartModal = ({ open, draftOrder, onClose, onSubmit, onRemove }: CartModalP
                                             {f.food.imageUrl && (
                                                 <img
                                                     src={`${BASE_URL}${f.food.imageUrl}`}
+                                                    loading="lazy"
                                                     alt={f.food.name}
                                                     className="w-16 h-16 object-cover rounded"
                                                 />

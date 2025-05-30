@@ -394,7 +394,8 @@ const Foods = () => {
                   <img
                     src={`${BASE_URL}${food.imageUrl}`}
                     alt={food.name}
-                    className="w-48 h-48 cursor-pointer  bject-cover rounded mb-2 transition duration-300 group-hover:scale-110"
+                    loading="lazy"
+                    className="w-48 h-48 cursor-pointer object-cover rounded mb-2 transition duration-300 group-hover:scale-110"
                     onClick={() => {
                       setSelectedFood(food);
                       setDetailModalOpen(true);
