@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { useEffect, useContext } from 'react';
 import { AuthContext } from '../../features/auth/AuthProvider';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
@@ -13,6 +13,20 @@ const SideMenu = () => {
     authContext?.setAccessToken(null);
     window.location.href = '/login';
   };
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        handleLogout();
+      }
+      if (event.altKey && event.key.toLowerCase() === 'p') {
+        event.preventDefault();
+        window.location.href = '/dashboard/profile';
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <div className="w-64 h-full flex flex-col justify-between">
