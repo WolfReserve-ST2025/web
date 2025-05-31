@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { Food } from "../food/Foods";
 import axios from '../../api/axios';
-import { useCurrentUser, User } from "../auth/useCurrentUser";
+import { useCurrentUser, User, getUserFromToken } from "../auth/useCurrentUser";
 import { showNotification } from "../../utils/notifications";
 import VoiceControl from '../../components/VoiceControl/VoiceControl';
+import { indexedDBService } from "../../utils/indexDB";
+import { useOnline } from "../../hooks/useOnline/useOnline";
 
 export type OrderStatus = 'draft' | 'pending' | 'confirmed' | 'rejected';
 
@@ -26,10 +28,14 @@ const Orders = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [userOrders, setUserOrders] = useState<Order[]>([]);
   const [error, setError] = useState<string | null>(null)
-  const { user, loading } = useCurrentUser();
+  const { loading } = useCurrentUser();
   const [showFilters, setShowFilters] = useState(false)
   const [activeFilter, setActiveFilter] = useState<string | null>("pending");
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const isOnline = useOnline();
+  const user = getUserFromToken();
+  const userRole = user?.role;
+
   const filters = [
     { label: "pending", value: "pending" },
     { label: "confirmed", value: "confirmed" },
@@ -37,38 +43,82 @@ const Orders = () => {
   ];
 
 
+
   useEffect(() => {
-
-
-
-    const fetchUserOrders = async () => {
-      try {
-        const response = await axios.get('/orders/user');
-        setUserOrders(response.data);
-
-      } catch {
-        setError('Failed to fetch user orders.')
-      }
-    }
-
-
     if (user?.role === "Chef") {
       fetchOrders();
     }
     if (user?.role === "User") {
       fetchUserOrders();
     }
-  }, [user])
+  }, [isOnline])
 
   const fetchOrders = async () => {
     try {
-      const response = await axios.get('/orders');
-      setOrders(response.data);
-    } catch {
-      setError('Failed to fetch orders.')
+      if (!isOnline) {
+        const cachedOrders = await indexedDBService.getOrders();
+        setOrders(cachedOrders);
+        
+        if (cachedOrders.length === 0) {
+          setError('No cached orders available. Please connect to the internet.');
+        } else {
+          setError(null);
+        }
+      } else {
+        console.log('Loading orders from API (online mode)');
+        const response = await axios.get('/orders');
+        setOrders(response.data);
+        
+        // Save to IndexedDB for offline use
+        await indexedDBService.saveOrders(response.data);
+        setError(null);
+      }
+    } catch (apiError) {
+      console.error('Error loading orders:', apiError);
+      if (!isOnline) {
+        setError('Failed to load cached orders.');
+      } else {
+        setError('Failed to fetch orders.');
+      }
     }
   }
+
+  const fetchUserOrders = async () => {
+    try {
+      if (!isOnline) {
+        const cachedUserOrders = await indexedDBService.getUserOrders();
+        setUserOrders(cachedUserOrders);
+        
+        if (cachedUserOrders.length === 0) {
+          setError('No cached user orders available. Please connect to the internet.');
+        } else {
+          setError(null);
+        }
+      } else {
+        const response = await axios.get('/orders/user');
+        setUserOrders(response.data);
+        
+        // Save to IndexedDB for offline use
+        await indexedDBService.saveUserOrders(response.data);
+        setError(null);
+      }
+    } catch (apiError) {
+      console.error('Error loading user orders:', apiError);
+      if (!isOnline) {
+        setError('Failed to load cached user orders.');
+      } else {
+        setError('Failed to fetch user orders.');
+      }
+    }
+  }
+
+
   const handleConfirm = async (order_id: string) => {
+    if (!isOnline) {
+      setError('Cannot confirm orders while offline. Please connect to the internet.');
+      return;
+    }
+
     const response = await axios.put(`/orders/${order_id}`, { status: 'confirmed' });
     setOrders(orders.map((o) => o._id === order_id ? response.data.order : o))
 
@@ -80,6 +130,11 @@ const Orders = () => {
   };
 
   const handleReject = async (order_id: string) => {
+    if (!isOnline) {
+      setError('Cannot reject orders while offline. Please connect to the internet.');
+      return;
+    }
+
     const response = await axios.put(`/orders/${order_id}`, { status: 'rejected' });
     setOrders(orders.map((o) => o._id === order_id ? response.data.order : o))
 
@@ -122,9 +177,15 @@ const Orders = () => {
         </div>
       )}
 
+      
 
       {user?.role === "Chef" && (
         <div>
+          {!isOnline && (
+            <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
+              <strong>Offline Mode:</strong> You are viewing cached data. Complete and reject actions will carry out when you are back online.
+            </div>
+          )}
           <VoiceControl 
             onConfirm={handleVoiceConfirm}
             onReject={handleVoiceReject}
@@ -175,12 +236,11 @@ const Orders = () => {
               {filteredOrders.map(order => (
                 <li
                   key={order._id}
-                  className={`bg-white rounded-2xl shadow-lg border p-8 transition hover:shadow-2xl cursor-pointer ${
+                  className={`bg-white rounded-2xl shadow-lg border p-8 transition hover:shadow-2xl  ${
                     selectedOrderId === order._id ? 'border-blue-500 bg-blue-50' : 'border-blue-100'
                   }`}
-                  onClick={() => setSelectedOrderId(order._id)}
+                  onClick={() => order.status === "pending" && isOnline && setSelectedOrderId(order._id)}
                 >
-                  {/* Add visual indicator for selected order */}
                   {selectedOrderId === order._id && (
                     <div className="mb-4 text-sm text-blue-600 font-medium">
                       🎤 Selected for voice control
@@ -234,6 +294,7 @@ const Orders = () => {
                                 <td className="px-3 py-2 text-center">
                                   <input
                                     type="checkbox"
+                                    disabled={!isOnline}
                                   />
                                 </td>
                                 <td className="px-3 py-2 text-gray-700">{f.food.name}</td>
@@ -283,6 +344,11 @@ const Orders = () => {
 
       {user?.role === "User" && (
         <div>
+          {!isOnline && (
+            <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
+              <strong>Offline Mode:</strong> You are viewing cached data. Order actions will be available when you are back online.
+            </div>
+          )}
           <h2 className="text-2xl font-semibold mb-4 text-black-700">Your orders</h2>
           {userOrders.length === 0 ? (
             <div className="text-gray-500 mb-8 italic text-center text-xl">No orders.</div>
