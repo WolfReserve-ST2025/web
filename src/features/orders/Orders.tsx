@@ -3,6 +3,7 @@ import { Food } from "../food/Foods";
 import axios from '../../api/axios';
 import { useCurrentUser, User } from "../auth/useCurrentUser";
 import { showNotification } from "../../utils/notifications";
+import VoiceControl from '../../components/VoiceControl/VoiceControl';
 
 export type OrderStatus = 'draft' | 'pending' | 'confirmed' | 'rejected';
 
@@ -28,6 +29,7 @@ const Orders = () => {
   const { user, loading } = useCurrentUser();
   const [showFilters, setShowFilters] = useState(false)
   const [activeFilter, setActiveFilter] = useState<string | null>("pending");
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const filters = [
     { label: "pending", value: "pending" },
     { label: "confirmed", value: "confirmed" },
@@ -61,7 +63,6 @@ const Orders = () => {
   const fetchOrders = async () => {
     try {
       const response = await axios.get('/orders');
-      console.log(response.data)
       setOrders(response.data);
     } catch {
       setError('Failed to fetch orders.')
@@ -89,6 +90,20 @@ const Orders = () => {
 
   };
 
+  //voice control functions
+  const handleVoiceConfirm = () => {
+    if (selectedOrderId) {
+      handleConfirm(selectedOrderId);
+      setSelectedOrderId(null);
+    }
+  };
+
+  const handleVoiceReject = () => {
+    if (selectedOrderId) {
+      handleReject(selectedOrderId);
+      setSelectedOrderId(null);
+    }
+  };
 
   const filteredOrders = activeFilter
     ? orders.filter(order => order.status === activeFilter)
@@ -110,6 +125,11 @@ const Orders = () => {
 
       {user?.role === "Chef" && (
         <div>
+          <VoiceControl 
+            onConfirm={handleVoiceConfirm}
+            onReject={handleVoiceReject}
+            isEnabled={!!selectedOrderId}
+          />
           <div className="ml-auto relative mb-16 flex justify-end">
             <div className="relative">
               <button
@@ -155,8 +175,17 @@ const Orders = () => {
               {filteredOrders.map(order => (
                 <li
                   key={order._id}
-                  className="bg-white rounded-2xl shadow-lg border border-blue-100 p-8 flex flex-col md:flex-row md:justify-between md:items-center transition hover:shadow-2xl"
+                  className={`bg-white rounded-2xl shadow-lg border p-8 transition hover:shadow-2xl cursor-pointer ${
+                    selectedOrderId === order._id ? 'border-blue-500 bg-blue-50' : 'border-blue-100'
+                  }`}
+                  onClick={() => setSelectedOrderId(order._id)}
                 >
+                  {/* Add visual indicator for selected order */}
+                  {selectedOrderId === order._id && (
+                    <div className="mb-4 text-sm text-blue-600 font-medium">
+                      🎤 Selected for voice control
+                    </div>
+                  )}
                   <div className="flex-1">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
                       <span className="font-bold text-xl text-blue-900">
@@ -225,13 +254,19 @@ const Orders = () => {
                       <div className="flex justify-end gap-3 mt-6">
                         <button
                           className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold shadow transition"
-                          onClick={() => handleConfirm(order._id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleConfirm(order._id);
+                          }}
                         >
                           ✓
                         </button>
                         <button
                           className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-semibold shadow transition"
-                          onClick={() => handleReject(order._id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleReject(order._id);
+                          }}
                         >
                           X
                         </button>
