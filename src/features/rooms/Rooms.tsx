@@ -10,6 +10,7 @@ import {getUserFromToken} from '../auth/useCurrentUser';
 import ErrorMessage from '../../components/Messages/ErrorMessage';
 import SuccessMessage from '../../components/Messages/SuccessMessage';
 import { showNotification } from '../../utils/notifications';
+import { Navigate } from 'react-router-dom';
 
 
 const Rooms = () => {
@@ -23,6 +24,8 @@ const Rooms = () => {
   const [success, setSuccess] = useState<string | null>(null);
 
   const user = getUserFromToken();
+
+  
 
   const canAdd = user?.role === 'Hotel';
   const canEdit = user?.role === 'Hotel';
@@ -117,7 +120,9 @@ const Rooms = () => {
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p>{error}</p>;
-    
+    if (user?.role === 'Chef') {
+      return <Navigate to="/dashboard/food" replace />;
+    } 
   return(
     <div>
       {error && <ErrorMessage message={error} onClose={() => setError(null)} />}
