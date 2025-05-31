@@ -11,16 +11,20 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false); // Add loading state
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
     try {
       await login({ email, password });
       setSuccess('Login successful!');
       setTimeout(() => navigate('/dashboard'), 2000);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');
+    }finally{
+      setLoading(false);
     }
   };
 

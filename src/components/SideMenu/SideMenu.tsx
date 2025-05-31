@@ -3,13 +3,16 @@ import { AuthContext } from '../../features/auth/AuthProvider';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 import MenuItems from './MenuItems';
+import { indexedDBService } from '../../utils/indexDB';
 
 const SideMenu = () => {
   const authContext = useContext(AuthContext);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
+    await indexedDBService.removeAuthToken();
+    await indexedDBService.clearPendingActions();
     authContext?.setAccessToken(null);
     window.location.href = '/login';
   };

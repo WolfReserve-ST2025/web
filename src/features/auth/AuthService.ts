@@ -1,14 +1,21 @@
 import axios from '../../api/axios';
+import { indexedDBService } from '../../utils/indexDB';
 
-export const login = (data: { email: string; password: string }) => {
-  return axios.post('/auth/login', data).then((response) => {
+export const login = async (data: { email: string; password: string }) => {
+  try {
+    const response = await axios.post('/auth/login', data);
 
     // Store both accessToken and refreshToken in localStorage
     localStorage.setItem('accessToken', response.data.accessToken);
     localStorage.setItem('refreshToken', response.data.refreshToken);
 
+    // NEW: Also save to IndexedDB for service worker access
+    await indexedDBService.saveAuthToken(response.data.accessToken);
+
     return response;
-  });
+  } catch (error) {
+    throw error;
+  }
 };
 
 export const register = (data: { name: string; surname: string; email: string; password: string; role: string }) =>

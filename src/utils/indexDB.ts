@@ -1,11 +1,12 @@
 const DB_NAME = 'WolfReserveDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 const STORES = {
   RESERVATIONS: 'reservations',
   ORDERS: 'orders',
   USER_ORDERS: 'userOrders',
-  PENDING_ACTIONS: 'pendingActions' // For offline chef actions
+  PENDING_ACTIONS: 'pendingActions',
+  AUTH_DATA: 'authData'
 } as const;
 
 export interface PendingAction {
@@ -53,6 +54,10 @@ class IndexedDBService {
           const actionsStore = db.createObjectStore(STORES.PENDING_ACTIONS, { keyPath: 'id' });
           actionsStore.createIndex('timestamp', 'timestamp', { unique: false });
           actionsStore.createIndex('orderId', 'orderId', { unique: false });
+        }
+
+        if (!db.objectStoreNames.contains(STORES.AUTH_DATA)) {
+          db.createObjectStore(STORES.AUTH_DATA, { keyPath: 'key' });
         }
       };
     });
@@ -192,6 +197,45 @@ class IndexedDBService {
     const store = transaction.objectStore(STORES.PENDING_ACTIONS);
     
     await store.clear();
+  }
+
+
+
+
+  // AUTH DATA
+  async saveAuthToken(token: string): Promise<void> {
+    if (!this.db) await this.initDB();
+    
+    const transaction = this.db!.transaction([STORES.AUTH_DATA], 'readwrite');
+    const store = transaction.objectStore(STORES.AUTH_DATA);
+    
+    await store.put({ key: 'authToken', value: token });
+  }
+
+  async getAuthToken(): Promise<string | null> {
+    if (!this.db) await this.initDB();
+    
+    return new Promise((resolve, reject) => {
+      const transaction = this.db!.transaction([STORES.AUTH_DATA], 'readonly');
+      const store = transaction.objectStore(STORES.AUTH_DATA);
+      const request = store.get('authToken');
+      
+      request.onsuccess = () => {
+        const result = request.result;
+        resolve(result ? result.value : null);
+      };
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  // Add this method to your IndexedDBService
+  async removeAuthToken(): Promise<void> {
+    if (!this.db) await this.initDB();
+    
+    const transaction = this.db!.transaction([STORES.AUTH_DATA], 'readwrite');
+    const store = transaction.objectStore(STORES.AUTH_DATA);
+    
+    await store.delete('authToken');
   }
 
 }

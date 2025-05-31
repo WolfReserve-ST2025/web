@@ -4,7 +4,7 @@ import axios from '../../api/axios';
 import { useCurrentUser, User, getUserFromToken } from "../auth/useCurrentUser";
 import { showNotification } from "../../utils/notifications";
 import VoiceControl from '../../components/VoiceControl/VoiceControl';
-import { indexedDBService } from "../../utils/indexDB";
+import { indexedDBService, PendingAction } from "../../utils/indexDB";
 import { useOnline } from "../../hooks/useOnline/useOnline";
 
 export type OrderStatus = 'draft' | 'pending' | 'confirmed' | 'rejected';
@@ -34,7 +34,6 @@ const Orders = () => {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const isOnline = useOnline();
   const user = getUserFromToken();
-  const userRole = user?.role;
 
   const filters = [
     { label: "pending", value: "pending" },
@@ -115,7 +114,29 @@ const Orders = () => {
 
   const handleConfirm = async (order_id: string) => {
     if (!isOnline) {
-      setError('Cannot confirm orders while offline. Please connect to the internet.');
+      // queue action for background sync
+      try {
+        const pendingAction: PendingAction = {
+          id: `confirm-${order_id}-${Date.now()}`,
+          type: 'confirm_order',
+          orderId: order_id,
+          timestamp: Date.now(),
+          userId: user?.id || ''
+        };
+        
+        await indexedDBService.savePendingAction(pendingAction);
+        
+        //eegister background sync
+        if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+          const registration = await navigator.serviceWorker.ready;
+          await (registration as any).sync.register('order-actions-sync');
+        }
+        
+        setError('Action queued for when you\'re back online');
+      } catch (error) {
+        setError('Failed to queue action');
+        console.error('Failed to queue confirm action:', error);
+      }
       return;
     }
 
@@ -131,7 +152,29 @@ const Orders = () => {
 
   const handleReject = async (order_id: string) => {
     if (!isOnline) {
-      setError('Cannot reject orders while offline. Please connect to the internet.');
+      //queue the action for background sync
+      try {
+        const pendingAction: PendingAction = {
+          id: `reject-${order_id}-${Date.now()}`,
+          type: 'reject_order',
+          orderId: order_id,
+          timestamp: Date.now(),
+          userId: user?.id || ''
+        };
+        
+        await indexedDBService.savePendingAction(pendingAction);
+        
+        // Register background sync
+        if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+          const registration = await navigator.serviceWorker.ready;
+          await (registration as any).sync.register('order-actions-sync');
+        }
+        
+        setError('Action queued for when you\'re back online');
+      } catch (error) {
+        setError('Failed to queue action');
+        console.error('Failed to queue reject action:', error);
+      }
       return;
     }
 
