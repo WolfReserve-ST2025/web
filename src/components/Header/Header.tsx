@@ -1,23 +1,12 @@
 import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useCurrentUser } from '../../features/auth/useCurrentUser';
+import { useOnline } from '../../hooks/useOnline/useOnline';
 
 const Header = () => {
   const { user, loading } = useCurrentUser();
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const isOnline = useOnline();
 
-  useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-20 bg-gray-900 text-white p-4 flex items-center justify-between h-16">

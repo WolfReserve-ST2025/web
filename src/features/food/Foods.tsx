@@ -225,7 +225,6 @@ const Foods = () => {
   // Brisanje hrane
   const handleDelete = async (food_id?: string) => {
     if (!food_id) return;
-    if (!window.confirm('Are you sure you want to delete this food?')) return;
     try {
       await axios.delete(`/foods/${food_id}`);
       setFoods(foods.filter((f) => f._id !== food_id));
@@ -242,7 +241,6 @@ const Foods = () => {
   // oddaj naročilo
   const handleSubmitOrder = async () => {
     try {
-      alert('Oddano naročilo!');
       await axios.post(`/orders`);
       
       // OS notifiaciton za oddajo naročila hrane
@@ -259,7 +257,6 @@ const Foods = () => {
   // dodaj hrano v cart
   const handleAddFood = async (food_id?: string) => {
     if (!food_id) return;
-    if (!window.confirm('Are you sure you want to add this food?')) return;
     try {
       const response = await axios.post(`/orders/${food_id}`, { quantity });
       setDraftOrder(response.data.order)
@@ -276,7 +273,6 @@ const Foods = () => {
   // odstrani hrano iz carta
   const handleRemoveFood = async (food_id: string) => {
     if (!food_id) return;
-    if (!window.confirm('Are you sure you want to remove this food?')) return;
     try {
 
       const response = await axios.delete(`/orders/${food_id}`);
