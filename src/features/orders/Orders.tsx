@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { Food } from "../food/Foods";
 import axios from '../../api/axios';
-import { useCurrentUser, User } from "../auth/useCurrentUser";
+import { useCurrentUser, User, getUserFromToken } from "../auth/useCurrentUser";
+import { showNotification } from "../../utils/notifications";
+import VoiceControl from '../../components/VoiceControl/VoiceControl';
+import { indexedDBService, PendingAction } from "../../utils/indexDB";
+import { useOnline } from "../../hooks/useOnline/useOnline";
 
 export type OrderStatus = 'draft' | 'pending' | 'confirmed' | 'rejected';
 
@@ -24,9 +28,13 @@ const Orders = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [userOrders, setUserOrders] = useState<Order[]>([]);
   const [error, setError] = useState<string | null>(null)
-  const { user, loading } = useCurrentUser();
+  const { loading } = useCurrentUser();
   const [showFilters, setShowFilters] = useState(false)
-  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<string | null>("pending");
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const isOnline = useOnline();
+  const user = getUserFromToken();
+
   const filters = [
     { label: "pending", value: "pending" },
     { label: "confirmed", value: "confirmed" },
@@ -34,53 +42,166 @@ const Orders = () => {
   ];
 
 
+
   useEffect(() => {
-
-
-
-    const fetchUserOrders = async () => {
-      try {
-        const response = await axios.get('/orders/user');
-        setUserOrders(response.data);
-
-      } catch {
-        setError('Failed to fetch user orders.')
-      }
-    }
-
-
     if (user?.role === "Chef") {
       fetchOrders();
     }
     if (user?.role === "User") {
       fetchUserOrders();
     }
-  }, [user])
+  }, [isOnline])
 
   const fetchOrders = async () => {
     try {
-      const response = await axios.get('/orders');
-      console.log(response.data)
-      setOrders(response.data);
-    } catch {
-      setError('Failed to fetch orders.')
+      if (!isOnline) {
+        const cachedOrders = await indexedDBService.getOrders();
+        setOrders(cachedOrders);
+        
+        if (cachedOrders.length === 0) {
+          setError('No cached orders available. Please connect to the internet.');
+        } else {
+          setError(null);
+        }
+      } else {
+        console.log('Loading orders from API (online mode)');
+        const response = await axios.get('/orders');
+        setOrders(response.data);
+        
+        // Save to IndexedDB for offline use
+        await indexedDBService.saveOrders(response.data);
+        setError(null);
+      }
+    } catch (apiError) {
+      console.error('Error loading orders:', apiError);
+      if (!isOnline) {
+        setError('Failed to load cached orders.');
+      } else {
+        setError('Failed to fetch orders.');
+      }
     }
   }
+
+  const fetchUserOrders = async () => {
+    try {
+      if (!isOnline) {
+        const cachedUserOrders = await indexedDBService.getUserOrders();
+        setUserOrders(cachedUserOrders);
+        
+        if (cachedUserOrders.length === 0) {
+          setError('No cached user orders available. Please connect to the internet.');
+        } else {
+          setError(null);
+        }
+      } else {
+        const response = await axios.get('/orders/user');
+        setUserOrders(response.data);
+        
+        // Save to IndexedDB for offline use
+        await indexedDBService.saveUserOrders(response.data);
+        setError(null);
+      }
+    } catch (apiError) {
+      console.error('Error loading user orders:', apiError);
+      if (!isOnline) {
+        setError('Failed to load cached user orders.');
+      } else {
+        setError('Failed to fetch user orders.');
+      }
+    }
+  }
+
+
   const handleConfirm = async (order_id: string) => {
+    if (!isOnline) {
+      // queue action for background sync
+      try {
+        const pendingAction: PendingAction = {
+          id: `confirm-${order_id}-${Date.now()}`,
+          type: 'confirm_order',
+          orderId: order_id,
+          timestamp: Date.now(),
+          userId: user?.id || ''
+        };
+        
+        await indexedDBService.savePendingAction(pendingAction);
+        
+        //eegister background sync
+        if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+          const registration = await navigator.serviceWorker.ready;
+          await (registration as any).sync.register('order-actions-sync');
+        }
+        
+        setError('Action queued for when you\'re back online');
+      } catch (error) {
+        setError('Failed to queue action');
+        console.error('Failed to queue confirm action:', error);
+      }
+      return;
+    }
+
     const response = await axios.put(`/orders/${order_id}`, { status: 'confirmed' });
     setOrders(orders.map((o) => o._id === order_id ? response.data.order : o))
 
+    // OS notifiaciton za potrditev naročila hrane
+    showNotification(`Order #${order_id} confirmed!`);
+    
     fetchOrders();
 
   };
 
   const handleReject = async (order_id: string) => {
+    if (!isOnline) {
+      //queue the action for background sync
+      try {
+        const pendingAction: PendingAction = {
+          id: `reject-${order_id}-${Date.now()}`,
+          type: 'reject_order',
+          orderId: order_id,
+          timestamp: Date.now(),
+          userId: user?.id || ''
+        };
+        
+        await indexedDBService.savePendingAction(pendingAction);
+        
+        // Register background sync
+        if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+          const registration = await navigator.serviceWorker.ready;
+          await (registration as any).sync.register('order-actions-sync');
+        }
+        
+        setError('Action queued for when you\'re back online');
+      } catch (error) {
+        setError('Failed to queue action');
+        console.error('Failed to queue reject action:', error);
+      }
+      return;
+    }
+
     const response = await axios.put(`/orders/${order_id}`, { status: 'rejected' });
     setOrders(orders.map((o) => o._id === order_id ? response.data.order : o))
+
+    // OS notifiaciton za zavrnitev naročila hrane
+    showNotification(`Order #${order_id} rejected!`);
+
     fetchOrders();
 
   };
 
+  //voice control functions
+  const handleVoiceConfirm = () => {
+    if (selectedOrderId) {
+      handleConfirm(selectedOrderId);
+      setSelectedOrderId(null);
+    }
+  };
+
+  const handleVoiceReject = () => {
+    if (selectedOrderId) {
+      handleReject(selectedOrderId);
+      setSelectedOrderId(null);
+    }
+  };
 
   const filteredOrders = activeFilter
     ? orders.filter(order => order.status === activeFilter)
@@ -99,9 +220,20 @@ const Orders = () => {
         </div>
       )}
 
+      
 
       {user?.role === "Chef" && (
         <div>
+          {!isOnline && (
+            <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
+              <strong>Offline Mode:</strong> You are viewing cached data. Complete and reject actions will carry out when you are back online.
+            </div>
+          )}
+          <VoiceControl 
+            onConfirm={handleVoiceConfirm}
+            onReject={handleVoiceReject}
+            isEnabled={!!selectedOrderId}
+          />
           <div className="ml-auto relative mb-16 flex justify-end">
             <div className="relative">
               <button
@@ -147,8 +279,16 @@ const Orders = () => {
               {filteredOrders.map(order => (
                 <li
                   key={order._id}
-                  className="bg-white rounded-2xl shadow-lg border border-blue-100 p-8 flex flex-col md:flex-row md:justify-between md:items-center transition hover:shadow-2xl"
+                  className={`bg-white rounded-2xl shadow-lg border p-8 transition hover:shadow-2xl  ${
+                    selectedOrderId === order._id ? 'border-blue-500 bg-blue-50' : 'border-blue-100'
+                  }`}
+                  onClick={() => order.status === "pending" && isOnline && setSelectedOrderId(order._id)}
                 >
+                  {selectedOrderId === order._id && (
+                    <div className="mb-4 text-sm text-blue-600 font-medium">
+                      🎤 Selected for voice control
+                    </div>
+                  )}
                   <div className="flex-1">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
                       <span className="font-bold text-xl text-blue-900">
@@ -197,6 +337,7 @@ const Orders = () => {
                                 <td className="px-3 py-2 text-center">
                                   <input
                                     type="checkbox"
+                                    disabled={!isOnline}
                                   />
                                 </td>
                                 <td className="px-3 py-2 text-gray-700">{f.food.name}</td>
@@ -217,13 +358,19 @@ const Orders = () => {
                       <div className="flex justify-end gap-3 mt-6">
                         <button
                           className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold shadow transition"
-                          onClick={() => handleConfirm(order._id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleConfirm(order._id);
+                          }}
                         >
                           ✓
                         </button>
                         <button
                           className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-semibold shadow transition"
-                          onClick={() => handleReject(order._id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleReject(order._id);
+                          }}
                         >
                           X
                         </button>
@@ -240,6 +387,11 @@ const Orders = () => {
 
       {user?.role === "User" && (
         <div>
+          {!isOnline && (
+            <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
+              <strong>Offline Mode:</strong> You are viewing cached data. Order actions will be available when you are back online.
+            </div>
+          )}
           <h2 className="text-2xl font-semibold mb-4 text-black-700">Your orders</h2>
           {userOrders.length === 0 ? (
             <div className="text-gray-500 mb-8 italic text-center text-xl">No orders.</div>

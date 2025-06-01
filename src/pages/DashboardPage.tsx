@@ -1,11 +1,23 @@
+import { useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from '../components/Header/Header';
 import SideMenu from '../components/SideMenu/SideMenu';
+import { requestNotificationPermission } from '../utils/notifications';
+import { useCurrentUser } from '../features/auth/useCurrentUser';
 
 const SIDEBAR_WIDTH = '16rem';
 const HEADER_HEIGHT = '4rem';
 
 const DashboardPage = () => {
+  const {user} = useCurrentUser();
+  const userId = user?._id;  
+  
+  useEffect(() => {
+    if(userId){
+      requestNotificationPermission(userId);
+    }
+  }, [user]);  
+  
   return (
     <div>
       <Header />

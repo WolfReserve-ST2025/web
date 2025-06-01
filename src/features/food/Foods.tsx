@@ -7,6 +7,7 @@ import { Order } from '../orders/Orders';
 import FoodModal from './FoodModal/FoodModal';
 import { serialize } from 'v8';
 import FoodDetailModal from './FoodDetailModal/FoodDetailModal';
+import { showNotification } from '../../utils/notifications';
 
 export interface Food {
   _id?: string;
@@ -146,6 +147,10 @@ const Foods = () => {
       if (typeToSubmit && !foodTypes.includes(typeToSubmit)) {
         setFoodTypes([...foodTypes, typeToSubmit]);
       }
+
+      // OS notifiaciton za dodajanje hrane
+      showNotification(`${activeFood.name} added to foods!`)
+
       setActiveFood({ name: '', price: 0, description: '', type: '', imageUrl: '' });
       setImageFile(null);
       setModalOpen(false)
@@ -189,6 +194,10 @@ const Foods = () => {
       if (typeToSubmit && !foodTypes.includes(typeToSubmit)) {
         setFoodTypes([...foodTypes, typeToSubmit]);
       }
+      
+      // OS notifiaciton za dodajanje hrane
+      showNotification(`${activeFood.name} edited successfully!`)
+
       setModalOpen(false)
       setActiveFood({ name: '', price: 0, description: '', type: '', imageUrl: '' });
       setImageFile(null);
@@ -216,10 +225,13 @@ const Foods = () => {
   // Brisanje hrane
   const handleDelete = async (food_id?: string) => {
     if (!food_id) return;
-    if (!window.confirm('Are you sure you want to delete this food?')) return;
     try {
       await axios.delete(`/foods/${food_id}`);
       setFoods(foods.filter((f) => f._id !== food_id));
+      
+      // OS notifiaciton za brisanje hrane
+      showNotification(`Food deleted successfully!`)
+
     } catch (err) {
       setError('Failed to delete food.');
     }
@@ -229,8 +241,11 @@ const Foods = () => {
   // oddaj naročilo
   const handleSubmitOrder = async () => {
     try {
-      alert('Oddano naročilo!');
       await axios.post(`/orders`);
+      
+      // OS notifiaciton za oddajo naročila hrane
+      showNotification(`Order submitted successfully!`)
+
       setDraftOrder(null)
       setCartOpen(false);
     } catch (err) {
@@ -242,7 +257,6 @@ const Foods = () => {
   // dodaj hrano v cart
   const handleAddFood = async (food_id?: string) => {
     if (!food_id) return;
-    if (!window.confirm('Are you sure you want to add this food?')) return;
     try {
       const response = await axios.post(`/orders/${food_id}`, { quantity });
       setDraftOrder(response.data.order)
@@ -259,7 +273,6 @@ const Foods = () => {
   // odstrani hrano iz carta
   const handleRemoveFood = async (food_id: string) => {
     if (!food_id) return;
-    if (!window.confirm('Are you sure you want to remove this food?')) return;
     try {
 
       const response = await axios.delete(`/orders/${food_id}`);
@@ -377,7 +390,8 @@ const Foods = () => {
                   <img
                     src={`${BASE_URL}${food.imageUrl}`}
                     alt={food.name}
-                    className="w-48 h-48 cursor-pointer  bject-cover rounded mb-2 transition duration-300 group-hover:scale-110"
+                    loading="lazy"
+                    className="w-48 h-48 cursor-pointer object-cover rounded mb-2 transition duration-300 group-hover:scale-110"
                     onClick={() => {
                       setSelectedFood(food);
                       setDetailModalOpen(true);

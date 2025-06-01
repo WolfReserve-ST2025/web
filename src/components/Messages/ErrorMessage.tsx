@@ -7,7 +7,7 @@ const ErrorMessage = ({ message, onClose }: { message: string; onClose: () => vo
   }, [onClose]);
 
   return (
-    <div className="fixed top-8 left-1/2 transform -translate-x-1/2 bg-white text-black border border-red-500 p-4 rounded shadow-md" security='style={{ zIndex: 1000 }}'>
+    <div className="fixed top-8 left-1/2 transform -translate-x-1/2 bg-white text-black border border-red-500 p-4 rounded shadow-md" style={{ zIndex: 1000 }} >
       <p>{message}</p>
     </div>
   );

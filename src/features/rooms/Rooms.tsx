@@ -9,6 +9,8 @@ import { AddReservationModel } from './models/addReservationModel';
 import {getUserFromToken} from '../auth/useCurrentUser';
 import ErrorMessage from '../../components/Messages/ErrorMessage';
 import SuccessMessage from '../../components/Messages/SuccessMessage';
+import { showNotification } from '../../utils/notifications';
+import { Navigate } from 'react-router-dom';
 
 
 const Rooms = () => {
@@ -22,6 +24,8 @@ const Rooms = () => {
   const [success, setSuccess] = useState<string | null>(null);
 
   const user = getUserFromToken();
+
+  
 
   const canAdd = user?.role === 'Hotel';
   const canEdit = user?.role === 'Hotel';
@@ -69,9 +73,15 @@ const Rooms = () => {
             if (room._id ) {
                 await axios.put(`/rooms/${room._id}`, room, requestHeaders);
                 setSuccess('Room succesfully updated.');
+            
+                // OS notifiaciton za posodobitev sobe
+                showNotification(`Room edited successfully!`,{body: `Room ${room.name} has been edited.`});
             } else {
                 await axios.post(`/rooms`, room, requestHeaders);
                 setSuccess('Succesfully added room.');
+                            
+                // OS notifiaciton za dodajanje sobe
+                showNotification(`New room added successfully!`,{body: `Room ${room.name} has been added.`});
             }
 
             getRooms();
@@ -88,6 +98,10 @@ const Rooms = () => {
                 headers: { Authorization: `Bearer ${localStorage.getItem('authToken')}` },
             });
             setSuccess('Succesfully deleted room.');
+                            
+            // OS notifiaciton za brisanje sobe
+            showNotification(`Room deleted successfully!`);
+            
             getRooms();
         } catch (err) {
             setError('Error while deleting room.');
@@ -106,7 +120,9 @@ const Rooms = () => {
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p>{error}</p>;
-    
+    if (user?.role === 'Chef') {
+      return <Navigate to="/dashboard/food" replace />;
+    } 
   return(
     <div>
       {error && <ErrorMessage message={error} onClose={() => setError(null)} />}

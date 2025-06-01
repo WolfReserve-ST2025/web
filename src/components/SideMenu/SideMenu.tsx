@@ -1,18 +1,35 @@
-import { useContext } from 'react';
+import { useEffect, useContext } from 'react';
 import { AuthContext } from '../../features/auth/AuthProvider';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
 import MenuItems from './MenuItems';
+import { indexedDBService } from '../../utils/indexDB';
 
 const SideMenu = () => {
   const authContext = useContext(AuthContext);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
+    await indexedDBService.removeAuthToken();
+    await indexedDBService.clearPendingActions();
     authContext?.setAccessToken(null);
     window.location.href = '/login';
   };
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        handleLogout();
+      }
+      if (event.altKey && event.key.toLowerCase() === 'p') {
+        event.preventDefault();
+        window.location.href = '/dashboard/profile';
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   return (
     <div className="w-64 h-full flex flex-col justify-between">
